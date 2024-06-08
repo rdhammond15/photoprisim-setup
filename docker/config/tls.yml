@@ -5,6 +5,3 @@ tls:
         caFiles:
           - /certs/client1-crt.pem
         clientAuthType: RequireAndVerifyClientCert
-  certificates:
-    - certFile: /certs/server-crt.pem
-      keyFile: /certs/server-key.pem

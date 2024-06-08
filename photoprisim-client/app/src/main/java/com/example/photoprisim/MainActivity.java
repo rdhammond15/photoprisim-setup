@@ -55,11 +55,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-            handler.proceed();
-        }
-
-        @Override
         public void onReceivedClientCertRequest(WebView view, final ClientCertRequest request) {
             try {
                 InputStream certificateFileStream = getResources().openRawResource(R.raw.bundle);

@@ -1,0 +1,20 @@
+entryPoints:
+  websecure:
+    address: ":443"
+
+providers:
+  file:
+    directory: /config/
+  docker:
+    exposedByDefault: false
+    network: proxy
+
+log:
+  level: info
+
+certificatesResolvers:
+  myresolver:
+    acme:
+      email: example@example.com
+      storage: /data/letsencrypt.json
+      tlsChallenge: {}

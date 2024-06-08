@@ -31,14 +31,13 @@ services:
     image: "traefik:v3.0"
     container_name: "traefik"
     restart: unless-stopped
-    command:
-      - --entrypoints.websecure.address=:443
-      - --entrypoints.we.http.redirections.entryPoint.to=websecure
-      - --providers.docker=true
-      - --providers.docker.exposedbydefault=false
-      - --providers.docker.network=proxy
-      - --providers.file.directory=/config/
-      - --log.level=debug
+#    command:
+#      - --entrypoints.websecure.address=:443
+#      - --providers.docker=true
+#      - --providers.docker.exposedbydefault=false
+#      - --providers.docker.network=proxy
+#      - --providers.file.directory=/config/
+#      - --log.level=debug
     networks:
       - proxy
     ports:
@@ -46,6 +45,7 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "./certs:/certs"
+      - "./traefik.yml:/etc/traefik/traefik.yml:ro"
       - "./config/tls.yml:/config/traefik.yaml:ro"
       - "./traefik/data:/data"
 
@@ -65,24 +65,26 @@ services:
       - apparmor:unconfined
     networks:
       - proxy
+      - photoprisim
     labels:
       - traefik.enable=true
       - traefik.docker.network=proxy
       - traefik.http.routers.photoprisim.entrypoints=websecure
       - traefik.http.routers.photoprisim.tls=true
-      - traefik.http.routers.photoprisim.rule=Host(`photoprisim-url.com`)
+      - traefik.http.routers.photoprisim.tls.certresolver=myresolver
+      - traefik.http.routers.photoprisim.rule=Host(`mydomain.me`)
       - traefik.http.routers.photoprisim.service=photoprisim
       - traefik.http.services.photoprisim.loadbalancer.server.port=2342
     environment:
       PHOTOPRISM_ADMIN_USER: "admin"                 # admin login username
       PHOTOPRISM_ADMIN_PASSWORD: "insecure"          # initial admin password (8-72 characters)
       PHOTOPRISM_AUTH_MODE: "password"               # authentication mode (public, password)
-      PHOTOPRISM_SITE_URL: "https://www.photoprimsim-url.com"  # server URL in the format "http(s)://domain.name(:port)/(path)"
+      PHOTOPRISM_SITE_URL: "https://www.mydomain.me"  # server URL in the format "http(s)://domain.name(:port)/(path)"
       PHOTOPRISM_DISABLE_TLS: "true"                # disables HTTPS/TLS even if the site URL starts with https:// and a certificate is available
       PHOTOPRISM_DEFAULT_TLS: "true"                 # defaults to a self-signed HTTPS/TLS certificate if no other certificate is available
       PHOTOPRISM_ORIGINALS_LIMIT: 5000               # file size limit for originals in MB (increase for high-res video)
       PHOTOPRISM_HTTP_COMPRESSION: "gzip"            # improves transfer speed and bandwidth utilization (none or gzip)
-      PHOTOPRISM_LOG_LEVEL: "trace"                   # log level: trace, debug, info, warning, error, fatal, or panic
+      PHOTOPRISM_LOG_LEVEL: "info"                   # log level: trace, debug, info, warning, error, fatal, or panic
       PHOTOPRISM_READONLY: "false"                   # do not modify originals directory (reduced functionality)
       PHOTOPRISM_EXPERIMENTAL: "false"               # enables experimental features
       PHOTOPRISM_DISABLE_CHOWN: "false"              # disables updating storage permissions via chmod and chown on startup
@@ -113,8 +115,8 @@ services:
       ## Run/install on first startup (options: update https gpu tensorflow davfs clitools clean):
       #PHOTOPRISM_INIT: "https"
       ## Run as a non-root user after initialization (supported: 0, 33, 50-99, 500-600, and 900-1200):
-      # PHOTOPRISM_UID: 1000
-      # PHOTOPRISM_GID: 1000
+      PHOTOPRISM_UID: 33
+      PHOTOPRISM_GID: 33
       # PHOTOPRISM_UMASK: 0000
     ## Start as non-root user before initialization (supported: 0, 33, 50-99, 500-600, and 900-1200):
     # user: "1000:1000"
@@ -153,7 +155,7 @@ services:
     volumes:
       - "./database:/var/lib/mysql" # DO NOT REMOVE
     networks:
-      - proxy
+      - photoprisim
     environment:
       MARIADB_AUTO_UPGRADE: "1"
       MARIADB_INITDB_SKIP_TZINFO: "1"
@@ -176,6 +178,14 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "~/.docker/config.json:/config.json" # optional, for authentication if you have a Docker Hub account
 
+  ofelia:
+    restart: unless-stopped
+    image: mcuadros/ofelia:latest
+    container_name: ofelia
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./jobs.ini:/etc/ofelia/config.ini"
 networks:
   proxy:
     external: true
+  photoprisim:
