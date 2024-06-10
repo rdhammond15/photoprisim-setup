@@ -1,5 +1,5 @@
-# photoprisim-setup
-Docker scripts and web client for accessing photoprisim. This is using traefik as the reverse proxy and ofilea for scheduling import and convert jobs on photoprisim. An android app was
+# photoprism-setup
+Docker scripts and web client for accessing photoprism. This is using traefik as the reverse proxy and ofilea for scheduling import and convert jobs on photoprism. An android app was
 created to handle mTLS since no mobile browersers seem to support it.
 
 # mTLS
